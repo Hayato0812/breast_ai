@@ -7,7 +7,7 @@ from keras.applications.vgg19 import VGG19
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential, Model
-from keras.layers import Input, Activation, Dropout, Flatten, Dense
+from keras.layers import Input, Activation, Dropout, Flatten, Dense, GlobalAveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
