@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 import schedule
 
+
+
 CK = config.CONSUMER_KEY
 CS = config.CONSUMER_SECRET
 AT = config.ACCESS_TOKEN
@@ -42,3 +44,5 @@ if req.status_code == 200:
         twitter.post(create_url, params = params)
 else:
     print("ERROR: %d" % req.status_code)
+
+schedule.every(10).minutes.do(job)
