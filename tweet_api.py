@@ -1,6 +1,6 @@
 import json, config
 from requests_oauthlib import OAuth1Session
-from urllib import request
+# from urllib import request
 import numpy as np
 from PIL import Image
 import schedule
