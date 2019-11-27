@@ -141,12 +141,15 @@ def objective(trial):
         model = build_model(structure_params)
         scores.append(use_model(model,X_train,Y_train,X_val,Y_val,))
     print("score→ "+str(mean(scores)))
+    params_and_scores.append([structure_params,mean(scores)])
     return 1- mean(scores)
 
 
 X, Y = load_data()
 X = resize_picture(X)
+params_and_scores = []
 study = optuna.create_study()
-study.optimize(objective, n_trials=1)
+study.optimize(objective, n_trials=30)
 print("params_{}".format(study.best_params))
 print("value_{}".format(study.best_value))
+print(params_and_scores)
