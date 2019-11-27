@@ -41,8 +41,7 @@ if req.status_code == 200:
             content = "写真が入ってないか２枚以上入ってるよ"
         print('----------------------------------------------------')
         params = {"status": "@"+screen_name+ " "+content}
+        twitter = OAuth1Session(CK, CS, AT, ATS)
         twitter.post(create_url, params = params)
 else:
     print("ERROR: %d" % req.status_code)
-
-schedule.every(10).minutes.do(job)
