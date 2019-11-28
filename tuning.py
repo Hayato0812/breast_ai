@@ -48,7 +48,7 @@ def load_data():
 def resize_picture(images):
     changed_images = []
     for img in images:
-        img = cv2.resize(img, dsize=(200, 200))
+        img = cv2.resize(img, dsize=(100, 100))
         changed_images.append(img)
     changed_images = np.array(changed_images).astype('int8')
     return changed_images
@@ -64,7 +64,7 @@ def make_more_data(images):
 
 def build_model(structure_params):
     base_model=VGG19(weights='imagenet',include_top=False,
-                 input_tensor=Input(shape=(200,200,3)))
+                 input_tensor=Input(shape=(100,100,3)))
     for layer in base_model.layers[:15]:
         layer.trainable=False
     model = Sequential()
@@ -133,14 +133,14 @@ def objective(trial):
 
     kfold = KFold(5, random_state = 0, shuffle = True)
     scores = []
-    # print(structure_params)
+    print(structure_params)
     for k_fold, (tr_inds, val_inds) in enumerate(kfold.split(X)):
         X_train,Y_train = X[tr_inds],Y[tr_inds]
         X_val,Y_val = X[val_inds],Y[val_inds]
         model = build_model(structure_params)
         score = use_model(model,X_train,Y_train,X_val,Y_val)
         scores.append(score)
-    # print("score→ "+str(mean(scores)))
+    print("score→ "+str(mean(scores)))
     params_and_scores.append([structure_params,mean(scores)])
     return mean(scores)
 

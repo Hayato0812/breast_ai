@@ -89,7 +89,7 @@ def fit_model(model, X_train, Y_train, X_val, Y_val):
         horizontal_flip=True
     )
     #ここから下はこれを参照https://lp-tech.net/articles/Y56uo
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3 , verbose=1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=2 , verbose=1)
     model.fit_generator(
         datagen.flow(X_train, Y_train, batch_size=batch_size),
         epochs = epochs,
@@ -115,7 +115,4 @@ def make_model():
 
 x_data, y_label_data = load_data()
 x_data = resize_picture(x_data)
-model = build_model()
-random_seed = 0
-X_train, X_val, Y_train, Y_val = train_test_split(x_data, y_label_data, random_state=random_seed)
-model = fit_model(model)
+make_model()
