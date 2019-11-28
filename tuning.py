@@ -116,16 +116,16 @@ def objective(trial):
     num_layers = trial.suggest_int('num_layers', 0, 3)
     first_dropout_rate = trial.suggest_uniform('first_dropout_rate', 0.0, 0.5)
     second_dropout_rate = trial.suggest_uniform('second_dropout_rate', 0.0, 0.5)
-    learning_rate = 1
+    # learning_rate = 1
     first_param_num =  trial.suggest_categorical("first_param_num", [128,256,512])
     second_param_num = trial.suggest_categorical("second_param_num", [32,64,128,256])
-    third_param_num = trial.suggest_categorical("third_param_num", [16,32,64,128])
+    third_param_num = trial.suggest_categorical("third_param_num", [16,32,64])
     structure_params = {
         # "optimizer": optimizer,
         "num_layers": num_layers,
         "first_dropout_rate": first_dropout_rate,
         "second_dropout_rate": second_dropout_rate,
-        "learning_rate": learning_rate,
+        # "learning_rate": learning_rate,
         "first_param_num": first_param_num,
         "second_param_num": second_param_num,
         "third_param_num": third_param_num
