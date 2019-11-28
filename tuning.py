@@ -109,7 +109,7 @@ def use_model(model, X_train, Y_train, X_val, Y_val):
         validation_data=(X_val,Y_val),
         callbacks=[early_stopping]
     )
-    return history.history["val_loss"][0]
+    return history.history["val_loss"][-1]
 
 def objective(trial):
     # optimizer = trial.suggest_categorical("optimizer", ["sgd", "adam", "rmsprop"])
