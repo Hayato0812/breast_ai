@@ -140,7 +140,6 @@ def objective(trial):
         model = build_model(structure_params)
         score = use_model(model,X_train,Y_train,X_val,Y_val)
         scores.append(score)
-        break
     # print("score→ "+str(mean(scores)))
     params_and_scores.append([structure_params,mean(scores)])
     return mean(scores)

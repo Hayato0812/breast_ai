@@ -4,13 +4,15 @@ import os
 import cv2
 from sklearn.model_selection import train_test_split
 from keras.applications.vgg19 import VGG19
-from keras.optimizers import Adam
+from keras.optimizers import *
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential, Model
 from keras.layers import Input, Activation, Dropout, Flatten, Dense, GlobalAveragePooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import KFold
 # from keras.preprocessing.image import load_img,img_to_array
 
 #数値に変換
@@ -75,10 +77,9 @@ def build_model():
     return model
 
 
-def fit_model(model):
-    samples_per_epoch = 20
-    batch_size=32
-    epochs = 10
+def fit_model(model, X_train, Y_train, X_val, Y_val):
+    batch_size=16
+    epochs = 20
     #とりあえずぼかし以外
     datagen = ImageDataGenerator(
         rotation_range=30,
@@ -88,21 +89,28 @@ def fit_model(model):
         horizontal_flip=True
     )
     #ここから下はこれを参照https://lp-tech.net/articles/Y56uo
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10 , verbose=1)
-#     checkpointer = ModelCheckpoint(
-#         model_weights,
-#         monitor='val_loss',
-#         verbose=1,
-#         save_best_only=True
-#         )
-    print(Y_train.shape)
-    history = model.fit_generator(
-        datagen.flow(X_train, Y_train, batch_size=20),
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3 , verbose=1)
+    model.fit_generator(
+        datagen.flow(X_train, Y_train, batch_size=batch_size),
         epochs = epochs,
         validation_data=(X_val,Y_val),
         callbacks=[early_stopping]
     )
     return model
+
+def make_model():
+    kfold = KFold(5, random_state = 0, shuffle = True)
+    scores = []
+    i = 0
+    for k_fold, (tr_inds, val_inds) in enumerate(kfold.split(X)):
+        X_train,Y_train = X[tr_inds],Y[tr_inds]
+        X_val,Y_val = X[val_inds],Y[val_inds]
+        model = build_model(structure_params)
+        model = fit_model(model,X_train,Y_train,X_val,Y_val)
+        model.save('use_models/model'+str(i)+'.h5')
+        i += 1
+        del model
+
 
 
 x_data, y_label_data = load_data()
