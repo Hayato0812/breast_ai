@@ -40,17 +40,17 @@ def load_data():
             x_data.append(img)
             y_label_data.append(label_value)
     x_data = np.array(x_data)
-    y_label_data = np.array(y_label_data)
+    y_label_data = np.array(y_label_data).astype('int8')
     print("loading has finished!")
     return x_data, y_label_data
 
-#データの大きさ揃える、とりあえず150*150で様子見
+#データの大きさ揃える
 def resize_picture(images):
     changed_images = []
     for img in images:
         img = cv2.resize(img, dsize=(200, 200))
         changed_images.append(img)
-    changed_images = np.array(changed_images)
+    changed_images = np.array(changed_images).astype('int8')
     return changed_images
 
 #データの切り取りによるかさまし、いらないかも
@@ -81,8 +81,13 @@ def build_model(structure_params):
             if structure_params["num_layers"] >= 3:
                 model.add(Dense(structure_params["third_param_num"]))
                 model.add(Activation('relu'))
+    #ここから下3行削除
+    # model.add(Dense(128,input_shape=(200,200,3)))
+    # model.add(Flatten())
+    # model.add(Dense(64))
     model.add(Dense(1))
-    model.compile(optimizer=structure_params["optimizer"], loss="mean_squared_error")
+    # model.compile(optimizer=structure_params["optimizer"], loss="mean_squared_error")
+    model.compile(optimizer=Adam(lr=0.001), loss="mean_squared_error")
     return model
 
 def use_model(model, X_train, Y_train, X_val, Y_val):
@@ -104,25 +109,19 @@ def use_model(model, X_train, Y_train, X_val, Y_val):
         validation_data=(X_val,Y_val),
         callbacks=[early_stopping]
     )
-    preds = model.predict(X_val)
-    return mean_squared_error(Y_val, preds)
+    return history.history["val_loss"][0]
 
 def objective(trial):
-    optimizer = trial.suggest_categorical("optimizer", ["sgd", "adam", "rmsprop"])
+    # optimizer = trial.suggest_categorical("optimizer", ["sgd", "adam", "rmsprop"])
     num_layers = trial.suggest_int('num_layers', 0, 3)
     first_dropout_rate = trial.suggest_uniform('first_dropout_rate', 0.0, 0.5)
     second_dropout_rate = trial.suggest_uniform('second_dropout_rate', 0.0, 0.5)
-    learning_rate = trial.suggest_loguniform('learning_rate', 1e-3, 1e-1)
-    # first_param_num =  trial.suggest_loguniform("first_param_num", 128,512)
-    # second_param_num = trial.suggest_loguniform("second_param_num", 64,256)
-    # third_param_num = trial.suggest_loguniform("third_param_num", 16,128)
+    learning_rate = 1
     first_param_num =  trial.suggest_categorical("first_param_num", [128,256,512])
     second_param_num = trial.suggest_categorical("second_param_num", [32,64,128,256])
     third_param_num = trial.suggest_categorical("third_param_num", [16,32,64,128])
-    batch_size = 16
-    epochs = 20
     structure_params = {
-        "optimizer": optimizer,
+        # "optimizer": optimizer,
         "num_layers": num_layers,
         "first_dropout_rate": first_dropout_rate,
         "second_dropout_rate": second_dropout_rate,
@@ -134,22 +133,24 @@ def objective(trial):
 
     kfold = KFold(5, random_state = 0, shuffle = True)
     scores = []
-    print(structure_params)
+    # print(structure_params)
     for k_fold, (tr_inds, val_inds) in enumerate(kfold.split(X)):
         X_train,Y_train = X[tr_inds],Y[tr_inds]
         X_val,Y_val = X[val_inds],Y[val_inds]
         model = build_model(structure_params)
-        scores.append(use_model(model,X_train,Y_train,X_val,Y_val,))
-    print("score→ "+str(mean(scores)))
+        score = use_model(model,X_train,Y_train,X_val,Y_val)
+        scores.append(score)
+        break
+    # print("score→ "+str(mean(scores)))
     params_and_scores.append([structure_params,mean(scores)])
-    return 1- mean(scores)
+    return mean(scores)
 
 
 X, Y = load_data()
 X = resize_picture(X)
 params_and_scores = []
 study = optuna.create_study()
-study.optimize(objective, n_trials=30)
+study.optimize(objective, n_trials=50)
 print("params_{}".format(study.best_params))
 print("value_{}".format(study.best_value))
 print(params_and_scores)
