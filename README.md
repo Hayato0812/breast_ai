@@ -2,7 +2,7 @@
 
 胸の大きさ（カップ数）を推定します。
 config.py→twitterアカウントのトークンとか、各自取得してね
-make_models.py→tuning.pyのパラメータを利用して作る、これやらないと
+make_models.py→tuning.pyのパラメータを利用して作る、これやらないとmodel_timely_reply.pyが動かないよ
 model_timely_reply.py→これをlocalで定期実行にすることでサービスが動くよ
 requirements.txt→もともとherokuを使うつもりだったからあるけどいらないよ
 tuning.py→modelの層の数とかのtuningだよ、GCP使わないと鬼のように時間かかるし使っても物によってはtuningの途中で落ちるよ
