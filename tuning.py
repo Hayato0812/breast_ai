@@ -11,7 +11,7 @@ from keras.layers import Input, Activation, Dropout, Flatten, Dense, GlobalAvera
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 from statistics import mean
 import optuna
 from sklearn.model_selection import KFold
@@ -27,7 +27,6 @@ def load_data():
     print("start loading...")
     path = "data"
     name_list = [i for i in os.listdir(path) if i != '.DS_Store']
-    pic_num = 0
     x_data = []
     y_label_data = []
     for name in name_list:
@@ -81,13 +80,8 @@ def build_model(structure_params):
             if structure_params["num_layers"] >= 3:
                 model.add(Dense(structure_params["third_param_num"]))
                 model.add(Activation('relu'))
-    #ここから下3行削除
-    # model.add(Dense(128,input_shape=(200,200,3)))
-    # model.add(Flatten())
-    # model.add(Dense(64))
     model.add(Dense(1))
-    # model.compile(optimizer=structure_params["optimizer"], loss="mean_squared_error")
-    model.compile(optimizer=Adam(lr=0.001), loss="mean_squared_error")
+    model.compile(optimizer=Adam(lr=0.001), loss="mean_absolute_error")
     return model
 
 def use_model(model, X_train, Y_train, X_val, Y_val):
@@ -102,7 +96,7 @@ def use_model(model, X_train, Y_train, X_val, Y_val):
         horizontal_flip=True
     )
     #ここから下はこれを参照https://lp-tech.net/articles/Y56uo
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3 , verbose=1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3 , verbose=0)
     history = model.fit_generator(
         datagen.flow(X_train, Y_train, batch_size=batch_size),
         epochs = epochs,
@@ -116,16 +110,14 @@ def objective(trial):
     num_layers = trial.suggest_int('num_layers', 0, 3)
     first_dropout_rate = trial.suggest_uniform('first_dropout_rate', 0.0, 0.5)
     second_dropout_rate = trial.suggest_uniform('second_dropout_rate', 0.0, 0.5)
-    # learning_rate = 1
-    first_param_num =  trial.suggest_categorical("first_param_num", [128,256,512])
-    second_param_num = trial.suggest_categorical("second_param_num", [32,64,128,256])
+    first_param_num =  trial.suggest_categorical("first_param_num", [256,512])
+    second_param_num = trial.suggest_categorical("second_param_num", [32,64,128])
     third_param_num = trial.suggest_categorical("third_param_num", [16,32,64])
     structure_params = {
         # "optimizer": optimizer,
         "num_layers": num_layers,
         "first_dropout_rate": first_dropout_rate,
         "second_dropout_rate": second_dropout_rate,
-        # "learning_rate": learning_rate,
         "first_param_num": first_param_num,
         "second_param_num": second_param_num,
         "third_param_num": third_param_num

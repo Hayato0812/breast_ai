@@ -11,8 +11,9 @@ from keras.layers import Input, Activation, Dropout, Flatten, Dense, GlobalAvera
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 # from keras.preprocessing.image import load_img,img_to_array
 
 #数値に変換
@@ -42,37 +43,32 @@ def load_data():
     print("loading has finished!")
     return x_data, y_label_data
 
-#データの大きさ揃える、とりあえず150*150で様子見
+
 def resize_picture(images):
     changed_images = []
     for img in images:
-        img = cv2.resize(img, dsize=(200, 200))
+        img = cv2.resize(img, dsize=(100, 100))
         changed_images.append(img)
     changed_images = np.array(changed_images)
     return changed_images
 
-#データの切り取りによるかさまし、いらないかも
-def make_more_data(images):
-    trans_images = []
-    for image in images:
-        cut_img = img[img.shape[0]//6:img.shape[0]*5//6,img.shape[1]//6:img.shape[1]*5//6]
-        trans_images.append(cut_img)
-    images.extend(trans_images)
-    return images
 
 def build_model():
     base_model=VGG19(weights='imagenet',include_top=False,
-                 input_tensor=Input(shape=(200,200,3)))
-    x=base_model.output
-    x=GlobalAveragePooling2D()(x)
-    x=Dense(1024,activation='relu')(x)
-    prediction=Dense(1)(x)
-    model=Model(inputs=base_model.input,outputs=prediction)
-
+                 input_tensor=Input(shape=(100,100,3)))
     for layer in base_model.layers[:15]:
         layer.trainable=False
-
-    model.compile(Adam(lr=1e-3), loss="mean_squared_error")
+    model = Sequential()
+    model.add(base_model)
+    model.add(Flatten())
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dense(128))
+    model.add(Activation('relu'))
+    model.add(Dense(64))
+    model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.compile(Adam(lr=1e-4,clipnorm=1), loss="mean_absolute_error")
     print("Build model!")
     return model
 
@@ -89,7 +85,7 @@ def fit_model(model, X_train, Y_train, X_val, Y_val):
         horizontal_flip=True
     )
     #ここから下はこれを参照https://lp-tech.net/articles/Y56uo
-    early_stopping = EarlyStopping(monitor='val_loss', patience=2 , verbose=1)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=1 , verbose=1)
     model.fit_generator(
         datagen.flow(X_train, Y_train, batch_size=batch_size),
         epochs = epochs,
@@ -99,20 +95,23 @@ def fit_model(model, X_train, Y_train, X_val, Y_val):
     return model
 
 def make_model():
-    kfold = KFold(5, random_state = 0, shuffle = True)
+    skf = StratifiedKFold(5, random_state = 0, shuffle = True)
     scores = []
     i = 0
-    for k_fold, (tr_inds, val_inds) in enumerate(kfold.split(X)):
+    for k_fold, (tr_inds, val_inds) in enumerate(skf.split(X,Y)):
         X_train,Y_train = X[tr_inds],Y[tr_inds]
         X_val,Y_val = X[val_inds],Y[val_inds]
-        model = build_model(structure_params)
+        model = build_model()
         model = fit_model(model,X_train,Y_train,X_val,Y_val)
         model.save('use_models/model'+str(i)+'.h5')
         i += 1
         del model
 
+def make_dir()
+    if not os.path.exists('use_models'):
+        os.mkdir("use_models")
 
-
-x_data, y_label_data = load_data()
-x_data = resize_picture(x_data)
+make_dir()
+X, Y = load_data()
+X = resize_picture(X)
 make_model()
