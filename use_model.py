@@ -23,19 +23,19 @@ def predict(models,image):
     return mean(preds)
 
 def comment_content(pred):
-    if pred<=1:
+    if pred<=1.8:
         content = "真っ平らのAカップじゃ"
-    elif pred<=2:
+    elif pred<=2.2:
         content = "Bカップか、平均くらいだのう"
-    elif pred<=3:
+    elif pred<=2.5:
         content = "Cカップ、ちょうどいいサイズじゃな"
-    elif pred<=4:
+    elif pred<=2.8:
         content = "Dカップとはかなり大きめの部類じゃな"
-    elif pred<=5:
+    elif pred<=3.1:
         content = "Eカップとはとても大きいのう、、、"
-    elif pred<=6:
+    elif pred<=3.4:
         content = "Fカップ！とても大きい胸じゃのう、、、、"
-    elif pred<=7:
+    elif pred<=3.6:
         content = "Gカップじゃと、、、こんな大きいのみたことないぞい、、、"
     else:
         content = "Hカップ以上、、、これは幻覚か、天国が広がってるぞい、、、"
@@ -48,6 +48,8 @@ def use_this_file(models, file_name):
     pred = predict(models,image)
     print(file_name)
     print(pred)
+
+
 
 # if __name__ == '__main__':
 #     file_paths = ["test_picture/F馬場ふみか.jpg","test_picture/Aカップ清水富美加.jpg","test_picture/Dカップ.jpg"]
